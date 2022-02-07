@@ -1,75 +1,75 @@
 #include "minitalk.h"
+#include <stdio.h>
 
-int	*ft_convert_to_binary(int ascii)
+int	g_binary[8];
+
+// recieves an ascii value (int) and then turns it
+// into a binary array of 7 bits and finally flips it
+// in the correct order
+
+void	ft_convert_to_binary(int character)
 {
-	int		*binary;
 	int		i;
-	int		n;
+	int		j;
+	int		bin[8];
 
-	binary = malloc(sizeof(int) * 7);
-	if (!binary)
-		return (NULL);
-	memset(binary, 0, 6);
-	n = ascii;
-	i = 6;
-	while (n > 0)
+	i = 0;
+	j = 7;
+	while (i < 8)
 	{
-		binary[i] = n % 2;
-		n /= 2;
-		i--;
+		bin[i] = character % 2;
+		character /= 2;
+		g_binary[j] = bin[i];
+		i++;
+		j--;
 	}
-	return (binary);
 }
+
+// sends the ascii value of each character to
+// a function that breaks it down to binary
+// sends the signal SIGUSR1 if the bit is 0
+// sends the signal SIGUSR2 if the bit is 1
+// uses usleep in between each signal to give
+// time to the server to process before
+// getting a new signal
 
 void	ft_send_signal(int pid, char *str)
 {
 	int	i;
 	int	j;
-	int	*binary;
 
 	i = 0;
 	while (str[i] != '\0')
 	{
-		binary = ft_convert_to_binary(str[i]);
+		ft_convert_to_binary(str[i]);
 		j = 0;
-		while (j < 7)
+		while (j < 8)
 		{
-			if (binary[j] == 0)
+			if (g_binary[j] == 0)
 				kill(pid, SIGUSR1);
-			if (binary[j] == 1)
+			if (g_binary[j] == 1)
 				kill(pid, SIGUSR2);
-			usleep(50);
+			usleep(80);
 			j++;
 		}
-		free (binary);
-		usleep(50);
+		usleep(80);
 		i++;
 	}
 }
 
+// handles the different types of errors that could occur
+// recieves the PID and the string as parameters
+
 int	main(int ac, char *av[])
 {
-	int		pid;
-	char	*str;
+	int					pid;
 
 	if (ac != 3)
 	{
 		write(1, "Utilisez le format: ./client <PID> <String>\n", 44);
-		return (1);
+		return (-1);
 	}
-	else
-	{
-		pid = ft_atoi(av[1]);
-		if (pid <= 0)
-		{
-			write(1, "Le PID est incorrect\n", 21);
-			return (0);
-		}
-		str = ft_strcpy(av[2]);
-		if (!str)
-			return (0);
-	}
-	ft_send_signal(pid, str);
-	free(str);
+	pid = ft_atoi(av[1]);
+	ft_send_signal(pid, av[2]);
 	return (0);
 }

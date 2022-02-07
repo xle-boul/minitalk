@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/01 13:53:24 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/07 10:26:28 by xle-boul         ###   ########.fr       */
+/*   Created: 2022/02/06 17:16:35 by xle-boul          #+#    #+#             */
+/*   Updated: 2022/02/07 10:49:48 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "minitalk_bonus.h"
 #include <stdio.h>
 
 // use of a global array to store each signal
@@ -33,7 +33,7 @@ char	ft_conversion(int *g_binary)
 		n /= 2;
 		i++;
 	}
-	return ((char)c);
+	return ((unsigned char)c);
 }
 
 // recieve signals and store them into the global variable
@@ -42,24 +42,27 @@ char	ft_conversion(int *g_binary)
 // the corresponding character
 // tells the program what to do once it has recieved a signal
 
-void	signalhandler(int sig)
+void	signalhandler(int sig, siginfo_t *info, void *context)
 {
 	int					bit;
 	static int			i;
 	unsigned char		c;
 
-	if (sig == SIGUSR1)
-		bit = 0;
+	(void)context;
+	bit = 0;
 	if (sig == SIGUSR2)
 		bit = 1;
 	g_binary[i] = bit;
-	write(1, &bit, 1);
+	kill(info->si_pid, SIGUSR2);
 	i++;
 	if (i % 8 == 0)
 	{
 		i = 0;
 		c = ft_conversion(g_binary);
-		write(1, &c, 1);
+		if (c < 128)
+			write(1, &c, 1);
+		if (c >= 128)
+			kill(info->si_pid, SIGUSR1);
 	}
 }
 
@@ -68,7 +71,8 @@ int	main(void)
 	pid_t				pid;
 	struct sigaction	action;
 
-	action.sa_handler = &signalhandler;
+	action.sa_sigaction = &signalhandler;
+	action.sa_flags = SA_SIGINFO;
 	pid = getpid();
 	sigaction(SIGUSR1, &action, NULL);
 	sigaction(SIGUSR2, &action, NULL);
