@@ -5,116 +5,91 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/06 17:15:42 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/07 10:57:53 by xle-boul         ###   ########.fr       */
+/*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
+/*   Updated: 2022/02/13 17:49:03 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk_bonus.h"
-#include <stdio.h>
 
-int	g_binary[8];
-
-// recieves an ascii value (int) and then turns it
-// into a binary array of 7 bits and finally flips it
-// in the correct order
-
-void	ft_convert_to_binary(int character)
+void	ft_error_handler(int i)
 {
-	int		i;
-	int		j;
-	int		bin[8];
-
-	i = 0;
-	while (i < 8)
+	if (i == 0)
 	{
-		bin[i] = character % 2;
-		character /= 2;
-		i++;
+		write(1, "Error KILL\n", 12);
+		exit(1);
 	}
-	j = 0;
-	i = 7;
-	while (i >= 0)
-		g_binary[j++] = bin[i--];
+	if (i == 1)
+	{
+		write(1, "Error SIGACTION\n", 17);
+		exit(1);
+	}
 }
 
-// sends the terminating signal to the server
-
-void	ft_send_last_signal(int pid)
+void	ft_send_terminator(int pid)
 {
-	int	i;
+	static int	i = 0;
 
-	i = 0;
-	while (i < 8)
-	{
-		kill(pid, SIGUSR2);
-		i++;
-		pause();
-	}
-	exit(1);
+	if (i <= 8)
+		if (kill(pid, SIGUSR1) == -1)
+			ft_error_handler(0);
+	i++;
 }
-
-// sends the ascii value of each character to
-// a function that breaks it down to binary
-// sends the signal SIGUSR1 if the bit is 0
-// sends the signal SIGUSR2 if the bit is 1
-// uses usleep in between each signal to give
-// time to the server to process before
-// getting a new signal
 
 void	ft_send_signal(int pid, char *str)
 {
-	int	i;
-	int	j;
+	static int	bit = 0;
+	static char	*str_bis = 0;
 
-	i = 0;
-	while (str[i] != '\0')
+	if (str)
+		str_bis = str;
+	if (*str_bis)
 	{
-		ft_convert_to_binary(str[i]);
-		j = 0;
-		while (j < 8)
+		if (((*str_bis >> bit) % 2) == 0)
+			if (kill(pid, SIGUSR1) == -1)
+				ft_error_handler(0);
+		if (((*str_bis >> bit) % 2) == 1)
+			if (kill(pid, SIGUSR2) == -1)
+				ft_error_handler(0);
+		bit++;
+		if (bit == 8)
 		{
-			if (g_binary[j] == 0)
-				kill(pid, SIGUSR1);
-			if (g_binary[j] == 1)
-				kill(pid, SIGUSR2);
-			pause();
-			j++;
+			str_bis++;
+			bit = 0;
 		}
-		usleep(100);
-		i++;
 	}
-	ft_send_last_signal(pid);
+	if (!(*str_bis))
+		ft_send_terminator(pid);
 }
 
-void	signalhandler(int sig)
+void	ft_receipt(int sig, siginfo_t *info, void *context)
 {
-	int	i;
-
-	(void)i;
+	(void)context ;
 	if (sig == SIGUSR1)
-		write(1, "All the characters were transferred!\n", 37);
+		ft_send_signal(info->si_pid, NULL);
 	if (sig == SIGUSR2)
-		i = 1;
+	{
+		write(1, "Server >> \"The message came through\"\n", 38);
+		exit(1);
+	}
 }
 
-// handles the different types of errors that could occur
-// recieves the PID and the string as parameters
-
-int	main(int ac, char *av[])
+int	main(int ac, char **av)
 {
-	int					pid;
 	struct sigaction	action;
 
-	action.sa_handler = &signalhandler;
-	sigaction(SIGUSR1, &action, NULL);
-	sigaction(SIGUSR2, &action, NULL);
+	action.sa_flags = SA_SIGINFO;
+	action.sa_sigaction = ft_receipt;
+	if (sigaction(SIGUSR1, &action, NULL) == -1
+		|| sigaction(SIGUSR2, &action, NULL) == -1)
+		ft_error_handler(1);
 	if (ac != 3)
 	{
 		write(1, "Utilisez le format: ./client <PID> <String>\n", 44);
-		return (-1);
+		exit(EXIT_FAILURE);
 	}
-	pid = ft_atoi(av[1]);
-	ft_send_signal(pid, av[2]);
+	ft_send_signal(ft_atoi(av[1]), av[2]);
+	while (1)
+		pause();
 	return (0);
 }

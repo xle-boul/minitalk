@@ -5,62 +5,50 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/01 13:53:24 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/07 10:26:28 by xle-boul         ###   ########.fr       */
+/*   Created: 2022/02/13 10:46:38 by xle-boul          #+#    #+#             */
+/*   Updated: 2022/02/13 17:49:30 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
-#include <stdio.h>
 
-// use of a global array to store each signal
-// recieved as a part of a bits sequence
-
-int	g_binary[8];
-
-char	ft_conversion(int *g_binary)
+void	ft_error_handler(int i)
 {
-	int	c;
-	int	i;
-	int	n;
-
-	n = 128;
-	i = 0;
-	c = 0;
-	while (i < 8)
+	if (i == 0)
 	{
-		c += n * g_binary[i];
-		n /= 2;
-		i++;
+		write(1, "Error KILL\n", 12);
+		exit(EXIT_FAILURE);
 	}
-	return ((char)c);
+	if (i == 1)
+	{
+		write(1, "Error SIGACTION\n", 17);
+		exit(EXIT_FAILURE);
+	}
 }
 
-// recieve signals and store them into the global variable
-// so that each char is split into 8 bits
-// once the variable is full, print its content as
-// the corresponding character
-// tells the program what to do once it has recieved a signal
-
-void	signalhandler(int sig)
+void	ft_signal_handler(int sig, siginfo_t *info, void *context)
 {
-	int					bit;
-	static int			i;
-	unsigned char		c;
+	static unsigned char	val = 0;
+	static int				bit = 1;
 
+	(void)context ;
 	if (sig == SIGUSR1)
-		bit = 0;
+		val += 0;
 	if (sig == SIGUSR2)
-		bit = 1;
-	g_binary[i] = bit;
-	write(1, &bit, 1);
-	i++;
-	if (i % 8 == 0)
+		val += bit;
+	bit *= 2;
+	if (bit == 256)
 	{
-		i = 0;
-		c = ft_conversion(g_binary);
-		write(1, &c, 1);
+		bit = 1;
+		if (val == 0)
+			if (kill(info->si_pid, SIGUSR2) == -2)
+				ft_error_handler(0);
+		if (val != 0)
+			write(1, &val, 1);
+		val = 0;
 	}
+	if (kill(info->si_pid, SIGUSR1) == -1)
+		ft_error_handler(0);
 }
 
 int	main(void)
@@ -68,14 +56,19 @@ int	main(void)
 	pid_t				pid;
 	struct sigaction	action;
 
-	action.sa_handler = &signalhandler;
+	action.sa_flags = SA_SIGINFO;
+	action.sa_sigaction = ft_signal_handler;
 	pid = getpid();
-	sigaction(SIGUSR1, &action, NULL);
-	sigaction(SIGUSR2, &action, NULL);
+	if (sigaction(SIGUSR1, &action, NULL) == -1
+		|| sigaction(SIGUSR2, &action, NULL) == -1)
+	{
+		ft_error_handler(1);
+		return (1);
+	}
 	write(1, "PID = ", 6);
 	ft_putnbr(pid);
 	write(1, "\n", 1);
 	while (1)
-		sleep(1);
+		pause();
 	return (0);
 }

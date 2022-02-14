@@ -1,75 +1,85 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   client.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
+/*   Updated: 2022/02/13 17:49:24 by xle-boul         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minitalk.h"
-#include <stdio.h>
 
-int	g_binary[8];
-
-// recieves an ascii value (int) and then turns it
-// into a binary array of 7 bits and finally flips it
-// in the correct order
-
-void	ft_convert_to_binary(int character)
+void	ft_error_handler(int i)
 {
-	int		i;
-	int		j;
-	int		bin[8];
-
-	i = 0;
-	j = 7;
-	while (i < 8)
+	if (i == 0)
 	{
-		bin[i] = character % 2;
-		character /= 2;
-		g_binary[j] = bin[i];
-		i++;
-		j--;
+		write(1, "Error KILL\n", 12);
+		exit(1);
+	}
+	if (i == 1)
+	{
+		write(1, "Error SIGACTION\n", 17);
+		exit(1);
 	}
 }
-
-// sends the ascii value of each character to
-// a function that breaks it down to binary
-// sends the signal SIGUSR1 if the bit is 0
-// sends the signal SIGUSR2 if the bit is 1
-// uses usleep in between each signal to give
-// time to the server to process before
-// getting a new signal
 
 void	ft_send_signal(int pid, char *str)
 {
-	int	i;
-	int	j;
+	static int	bit = 0;
+	static char	*str_bis = 0;
 
-	i = 0;
-	while (str[i] != '\0')
+	if (str)
+		str_bis = str;
+	if (*str_bis)
 	{
-		ft_convert_to_binary(str[i]);
-		j = 0;
-		while (j < 8)
+		if (((*str_bis >> bit) % 2) == 0)
+			if (kill(pid, SIGUSR1) == -1)
+				ft_error_handler(0);
+		if (((*str_bis >> bit) % 2) == 1)
+			if (kill(pid, SIGUSR2) == -1)
+				ft_error_handler(0);
+		bit++;
+		if (bit == 8)
 		{
-			if (g_binary[j] == 0)
-				kill(pid, SIGUSR1);
-			if (g_binary[j] == 1)
-				kill(pid, SIGUSR2);
-			usleep(80);
-			j++;
+			str_bis++;
+			bit = 0;
 		}
-		usleep(80);
-		i++;
+	}
+	if (!(*str_bis))
+		exit(EXIT_SUCCESS);
+}
+
+void	ft_receipt(int sig, siginfo_t *info, void *context)
+{
+	(void)context ;
+	if (sig == SIGUSR1)
+		ft_send_signal(info->si_pid, NULL);
+	if (sig == SIGUSR2)
+	{
+		write(1, "Server >> \"The message came through\"\n", 38);
+		exit(1);
 	}
 }
 
-// handles the different types of errors that could occur
-// recieves the PID and the string as parameters
-
-int	main(int ac, char *av[])
+int	main(int ac, char **av)
 {
-	int					pid;
+	struct sigaction	action;
 
+	action.sa_flags = SA_SIGINFO;
+	action.sa_sigaction = ft_receipt;
+	if (sigaction(SIGUSR1, &action, NULL) == -1
+		|| sigaction(SIGUSR2, &action, NULL) == -1)
+		ft_error_handler(1);
 	if (ac != 3)
 	{
 		write(1, "Utilisez le format: ./client <PID> <String>\n", 44);
-		return (-1);
+		exit(EXIT_FAILURE);
 	}
-	pid = ft_atoi(av[1]);
-	ft_send_signal(pid, av[2]);
+	ft_send_signal(ft_atoi(av[1]), av[2]);
+	while (1)
+		pause();
 	return (0);
 }
