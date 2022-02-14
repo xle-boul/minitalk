@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:46:38 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/13 17:49:30 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/14 11:34:34 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,11 +40,7 @@ void	ft_signal_handler(int sig, siginfo_t *info, void *context)
 	if (bit == 256)
 	{
 		bit = 1;
-		if (val == 0)
-			if (kill(info->si_pid, SIGUSR2) == -2)
-				ft_error_handler(0);
-		if (val != 0)
-			write(1, &val, 1);
+		write(1, &val, 1);
 		val = 0;
 	}
 	if (kill(info->si_pid, SIGUSR1) == -1)

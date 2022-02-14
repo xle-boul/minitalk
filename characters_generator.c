@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   test.c                                             :+:      :+:    :+:   */
+/*   characters_generator.c                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 11:18:56 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/13 15:22:39 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/14 11:50:16 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,19 +24,21 @@ int	main(int ac, char *av[])
 		return (0);
 	}
 	number = ft_atoi(av[1]);
+	write(1, "\"", 1);
 	while (number)
 	{
-		if ((48 <= ascii && ascii <= 57)
-			|| (63 <= ascii && ascii <= 90) || (97 <= ascii && ascii <= 122))
+		if (32 <= ascii && ascii <= 126)
 		{
-			if (ascii == 37)
-				ascii--;
-			write(1, &ascii, 1);
-			number--;
+			if (!(ascii == 34 || ascii == 33 || ascii == 96 || ascii == 59))
+			{
+				write(1, &ascii, 1);
+				number--;
+			}
 		}
 		ascii--;
 		if (ascii == 32)
 			ascii = 122;
 	}
+	write(1, "\"", 1);
 	return (0);
 }

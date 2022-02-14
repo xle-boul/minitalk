@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/13 17:49:24 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/14 11:34:55 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,6 @@ void	ft_receipt(int sig, siginfo_t *info, void *context)
 	(void)context ;
 	if (sig == SIGUSR1)
 		ft_send_signal(info->si_pid, NULL);
-	if (sig == SIGUSR2)
-	{
-		write(1, "Server >> \"The message came through\"\n", 38);
-		exit(1);
-	}
 }
 
 int	main(int ac, char **av)
