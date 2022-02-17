@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/14 11:34:55 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/17 11:19:28 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,16 @@ void	ft_error_handler(int i)
 		write(1, "Error SIGACTION\n", 17);
 		exit(1);
 	}
+}
+
+void	ft_send_terminator(int pid)
+{
+	static int	i = 0;
+
+	if (i <= 8)
+		if (kill(pid, SIGUSR1) == -1)
+			ft_error_handler(0);
+	i++;
 }
 
 void	ft_send_signal(int pid, char *str)
@@ -49,14 +59,20 @@ void	ft_send_signal(int pid, char *str)
 		}
 	}
 	if (!(*str_bis))
-		exit(EXIT_SUCCESS);
+		ft_send_terminator(pid);
 }
 
 void	ft_receipt(int sig, siginfo_t *info, void *context)
 {
+	static int	id;
+
+	if (info->si_pid != 0)
+		id = info->si_pid;
 	(void)context ;
 	if (sig == SIGUSR1)
-		ft_send_signal(info->si_pid, NULL);
+		ft_send_signal(id, NULL);
+	if (sig == SIGUSR2)
+		exit(EXIT_SUCCESS);
 }
 
 int	main(int ac, char **av)

@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/13 17:49:03 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/17 11:19:16 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,13 +64,17 @@ void	ft_send_signal(int pid, char *str)
 
 void	ft_receipt(int sig, siginfo_t *info, void *context)
 {
+	static int	id;
+
+	if (info->si_pid != 0)
+		id = info->si_pid;
 	(void)context ;
 	if (sig == SIGUSR1)
-		ft_send_signal(info->si_pid, NULL);
+		ft_send_signal(id, NULL);
 	if (sig == SIGUSR2)
 	{
 		write(1, "Server >> \"The message came through\"\n", 38);
-		exit(1);
+		exit(EXIT_SUCCESS);
 	}
 }
 
