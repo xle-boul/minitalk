@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:58:19 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/17 11:19:28 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/21 20:22:12 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,10 @@ void	ft_send_signal(int pid, char *str)
 		str_bis = str;
 	if (*str_bis)
 	{
-		if (((*str_bis >> bit) % 2) == 0)
+		if ((((unsigned char)*str_bis >> bit) % 2) == 0)
 			if (kill(pid, SIGUSR1) == -1)
 				ft_error_handler(0);
-		if (((*str_bis >> bit) % 2) == 1)
+		if ((((unsigned char)*str_bis >> bit) % 2) == 1)
 			if (kill(pid, SIGUSR2) == -1)
 				ft_error_handler(0);
 		bit++;

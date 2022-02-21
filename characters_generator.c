@@ -6,18 +6,20 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 11:18:56 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/14 11:50:16 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/21 21:18:02 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
 #include "minitalk.h"
 
 int	main(int ac, char *av[])
 {
-	int	number;
-	int	ascii;
+	int				number;
+	unsigned char	ascii;
 
-	ascii = 122;
+	ascii = 127;
+	printf("%c\n", ascii);
 	if (ac != 2)
 	{
 		write(1, "Format: ./a.out <number>\n", 26);
@@ -37,7 +39,7 @@ int	main(int ac, char *av[])
 		}
 		ascii--;
 		if (ascii == 32)
-			ascii = 122;
+			ascii = 127;
 	}
 	write(1, "\"", 1);
 	return (0);

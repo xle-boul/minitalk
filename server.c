@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 10:46:38 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/17 11:19:34 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/21 21:21:37 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	ft_signal_handler(int sig, siginfo_t *info, void *context)
 		val += 0;
 	if (sig == SIGUSR2)
 		val += bit;
-	bit *= 2;
+	bit <<= 1;
 	if (bit == 256)
 	{
 		bit = 1;

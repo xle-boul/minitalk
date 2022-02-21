@@ -6,7 +6,7 @@
 /*   By: xle-boul <xle-boul@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/19 13:57:47 by xle-boul          #+#    #+#             */
-/*   Updated: 2022/02/19 13:57:48 by xle-boul         ###   ########.fr       */
+/*   Updated: 2022/02/21 19:29:20 by xle-boul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <string.h>
+# include <locale.h>
 
 void	ft_putnbr(int n);
 void	ft_putchar(char c);
