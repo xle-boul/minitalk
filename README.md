@@ -16,3 +16,10 @@ I didn't use:
 
 
 Bonus included.
+
+
+Also included: a character generator. If you want to test long strings, this little program will let you choose how many characters you want.
+
+To compile it: gcc charater_generator.c utils.c
+
+To run it: ./a.out \<number of characters desired\>
